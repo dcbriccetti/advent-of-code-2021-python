@@ -1,4 +1,4 @@
-import pathlib
+from pathlib import Path
 from itertools import pairwise
 from typing import Iterator
 
@@ -19,7 +19,7 @@ def sums_of_3() -> Iterator[int]:
     return (sum(numbers[i-2:i+1]) for i in range(2, len(numbers)))
 
 def get_numbers() -> Iterator[int]:
-    lines = pathlib.Path('input.txt').read_text().rstrip().split('\n')
+    lines = Path('data/1.txt').read_text().rstrip().split('\n')
     return (int(line) for line in lines)
 
-print(part2())
+print(part1(), part2())
