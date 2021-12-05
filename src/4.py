@@ -31,16 +31,17 @@ cards = [get_card(input_data_groups[i]) for i in range(1, len(input_data_groups)
 print(f'There are {len(cards)} cards')
 hits = [[[False for r in range(5)] for c in range(5)] for b in range(len(cards))]
 winner_found = False
+found_winner_ids = set()
 
-while picks and not winner_found:
-    pick = picks.pop(0)
+for pick in picks:
     print(f'{pick=}')
     num_updated = 0
     for i, (card, selected) in enumerate(zip(cards, hits)):
         updated, winner = update_card(card, selected, pick)
         num_updated += updated
-        if winner:
+        if winner and i not in found_winner_ids:
             winner_found = True
+            found_winner_ids.add(i)
             unmarked_sum = unmarked_numbers_sum(card, selected)
             print(f'Winner: {i=}, {unmarked_sum=}, {unmarked_sum * pick=}')
     if num_updated:
