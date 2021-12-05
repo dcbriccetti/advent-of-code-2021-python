@@ -35,7 +35,7 @@ class Card:
 def solve_both_parts():
     input_groups: list[str] = Path('../data/4_test.txt').read_text().rstrip().split('\n\n')
     picks: list[int] = list(map(int, input_groups[0].split(',')))
-    card_data_groups: list[str] = input_groups[1:]  # Skip 1st group which is picks
+    card_data_groups: list[str] = input_groups[1:]  # Skip 1st group, which is picks
     cards: list[Card] = [Card(card_data) for card_data in card_data_groups]
 
     for pick in picks:
