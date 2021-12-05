@@ -1,48 +1,50 @@
 from pathlib import Path
-from typing import List
 
-Card = List[List[int]]
+class Card:
+    numbers: list[list[int]]
+    hits: list[list[bool]]
+    is_winner: bool
 
-def get_card(groups: str) -> Card:
-    return [list(map(int, line.split())) for line in groups.split('\n')]
+    def __init__(self, card_as_string: str):
+        '''Create a Card from input like the following:
+        22 13 17 11  0\n 8  2 23  4 24\n21  9 14 16  7\n 6 10  3 18  5\n 1 12 20 15 19'''
+        self.numbers = [list(map(int, line.split())) for line in card_as_string.split('\n')]
+        self.hits = [[False for _ in range(5)] for _ in range(5)]
+        self.is_winner = False
 
-def update_card(card: Card, selected: Card, pick: int) -> tuple[bool, bool]:
-    def is_winner() -> bool:
-        if any(sum(selected[row]) == 5 for row in range(5)):
-            return True
-        for col in range(5):
-            if sum(selected[row][col] for row in range(5)) == 5:
-                return True
+    def update(self, pick: int) -> bool:
+        def is_winner() -> bool:
+            def col_selected(col: int) -> bool:
+                return sum(self.hits[row][col] for row in range(5)) == 5
+
+            return (
+                any(sum(self.hits[row]) == 5 for row in range(5)) or  # Any completed rows?
+                any(col_selected(col) for col in range(5)))           # Any completed columns?
+
+        for ri in range(5):
+            for ci in range(5):
+                if self.numbers[ri][ci] == pick:
+                    self.hits[ri][ci] = True
+                    self.is_winner = is_winner()
+                    return self.is_winner
         return False
 
-    for ri in range(5):
-        for ci in range(5):
-            if card[ri][ci] == pick:
-                selected[ri][ci] = True
-                return True, is_winner()
-    return False, False
+    def unmarked_numbers_sum(self) -> int:
+        return sum([self.numbers[ri][ci] for ri in range(5) for ci in range(5) if not self.hits[ri][ci]])
 
-def unmarked_numbers_sum(card: Card, selected: Card) -> int:
-    return sum([card[ri][ci] for ri in range(5) for ci in range(5) if not selected[ri][ci]])
+def solve_both_parts():
+    input_groups: list[str] = Path('../data/4_test.txt').read_text().rstrip().split('\n\n')
+    picks: list[int] = list(map(int, input_groups[0].split(',')))
+    card_data_groups: list[str] = input_groups[1:]  # Skip 1st group which is picks
+    cards: list[Card] = [Card(card_data) for card_data in card_data_groups]
+    hits = [[[False for r in range(5)] for c in range(5)] for b in range(len(cards))]
 
-input_data_groups: list[str] = Path('../data/4.txt').read_text().rstrip().split('\n\n')
-picks: List[int] = list(map(int, input_data_groups[0].split(',')))
-cards = [get_card(input_data_groups[i]) for i in range(1, len(input_data_groups))]
-print(f'There are {len(cards)} cards')
-hits = [[[False for r in range(5)] for c in range(5)] for b in range(len(cards))]
-winner_found = False
-found_winner_ids = set()
+    for pick in picks:
+        for card, selected in zip(cards, hits):
+            if not card.is_winner:
+                card_wins = card.update(pick)
+                if card_wins:
+                    unmarked_sum = card.unmarked_numbers_sum()
+                    print(f'Winner: {unmarked_sum=}, {pick=}, {unmarked_sum * pick=}')
 
-for pick in picks:
-    print(f'{pick=}')
-    num_updated = 0
-    for i, (card, selected) in enumerate(zip(cards, hits)):
-        updated, winner = update_card(card, selected, pick)
-        num_updated += updated
-        if winner and i not in found_winner_ids:
-            winner_found = True
-            found_winner_ids.add(i)
-            unmarked_sum = unmarked_numbers_sum(card, selected)
-            print(f'Winner: {i=}, {unmarked_sum=}, {unmarked_sum * pick=}')
-    if num_updated:
-        print(f'{num_updated=}')
+solve_both_parts()
