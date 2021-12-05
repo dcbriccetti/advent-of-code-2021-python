@@ -37,10 +37,9 @@ def solve_both_parts():
     picks: list[int] = list(map(int, input_groups[0].split(',')))
     card_data_groups: list[str] = input_groups[1:]  # Skip 1st group which is picks
     cards: list[Card] = [Card(card_data) for card_data in card_data_groups]
-    hits = [[[False for r in range(5)] for c in range(5)] for b in range(len(cards))]
 
     for pick in picks:
-        for card, selected in zip(cards, hits):
+        for card in cards:
             if not card.is_winner:
                 card_wins = card.update(pick)
                 if card_wins:
