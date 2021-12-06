@@ -1,8 +1,9 @@
 from collections import Counter
 from dataclasses import dataclass
-from pathlib import Path
 from itertools import chain
+from pathlib import Path
 from typing import Iterator
+
 
 @dataclass(frozen=True)
 class Point:
@@ -19,10 +20,9 @@ class Line:
         '''
         self.repr = line_string
         pairs: list[str] = line_string.split(' -> ')
-        points = [Point(int(x), int(y))
-                  for x, y in (map(int, pair.split(','))
-                               for pair in pairs)]
-        self.points = points
+        self.points = [Point(x, y)
+                       for x, y in (map(int, pair.split(','))
+                                    for pair in pairs)]
 
     def __repr__(self):
         return self.repr
