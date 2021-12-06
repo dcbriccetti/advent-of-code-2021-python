@@ -1,6 +1,7 @@
 from pathlib import Path
 
-input_lines: list[int] = list(map(int, Path('../data/6_test.txt').read_text().rstrip().split(',')))
+starting_days_until_spawns: list[int] = list(map(int,
+    Path('../data/6.txt').read_text().rstrip().split(',')))
 
 class Fish:
     days_until_spawn: int
@@ -18,18 +19,12 @@ class Fish:
 def part1():
     def print_days(fishes):
         print(len(fishes), ','.join(str(fish.days_until_spawn) for fish in fishes))
-    fishes = [Fish(days_left) for days_left in input_lines]
+    fishes = [Fish(days_left) for days_left in starting_days_until_spawns]
     print_days(fishes)
-    for n in range(80):
-        num_to_spawn = 0
-        print(f'Day {n + 1}')
-        for fish in fishes:
-            if fish.update():
-                num_to_spawn += 1
-        new_fishes = [Fish(8) for _ in range(num_to_spawn)]
-        print(f'Spawning {len(new_fishes)}')
-        fishes.extend(new_fishes)
-        print_days(fishes)
+    for n in range(256):
+        num_to_spawn = sum(fish.update() for fish in fishes)
+        fishes.extend(Fish(8) for _ in range(num_to_spawn))
+        print(f'Day {n + 1}, spawning {num_to_spawn:,}, count: {len(fishes):,}')
     return
 
 def part2():
