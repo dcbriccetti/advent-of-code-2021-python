@@ -27,33 +27,33 @@ class Line:
     def __repr__(self):
         return self.repr
 
-    def is_horz(self) -> bool:
-        return self.points[0].y == self.points[1].y
-
-    def is_vert(self) -> bool:
-        return self.points[0].x == self.points[1].x
-
     def is_horz_or_vert(self) -> bool:
-        return self.is_horz() or self.is_vert()
+        return self.points[0].y == self.points[1].y or \
+               self.points[0].x == self.points[1].x
 
     def points_on_line(self) -> list[Point]:
-        xes = [p.x for p in self.points]
-        ys = [p.y for p in self.points]
-        min_x = min(xes)
-        max_x = max(xes)
-        min_y = min(ys)
-        max_y = max(ys)
-        if self.is_horz():
-            return [Point(x, self.points[0].y) for x in range(min_x, max_x + 1)]
-        if self.is_vert():
-            return [Point(self.points[0].x, y) for y in range(min_y, max_y + 1)]
-        dist = max_x - min_x
-        points = [Point(min_x + offset, min_y + offset) for offset in range(dist + 1)]
+        def chg(start: int, end: int):
+            'Return change amount to get from start to end (-1, 0, 1)'
+            diff = end - start
+            return 0 if not diff else 1 if diff > 0 else -1
+
+        p1, p2 = self.points
+        x_chg = chg(p1.x, p2.x)
+        y_chg = chg(p1.y, p2.y)
+        x = p1.x
+        y = p1.y
+        points = []
+        while not (x == p2.x and y == p2.y):
+            points.append(Point(x, y))
+            x += x_chg
+            y += y_chg
+        points.append(Point(x, y))
         return points
 
-input_lines: list[str] = Path('../data/5_test.txt').read_text().rstrip().split('\n')
+input_lines: list[str] = Path('../data/5.txt').read_text().rstrip().split('\n')
 lines: list[Line] = [Line(il) for il in input_lines]
-horz_vert_lines: list[Line] = [line for line in lines if line.is_horz_or_vert()]
+horz_vert_lines: Iterator[Line] = (line for line in lines
+                                   if line.is_horz_or_vert())
 
 def part1():
     return num_with_at_least_2(horz_vert_lines)
@@ -66,5 +66,4 @@ def num_with_at_least_2(lines: Iterator[Line]) -> int:
     counter = Counter(points)
     return sum(1 for num_lines_here in counter.values() if num_lines_here >= 2)
 
-
-print(part2())
+print(part1(), part2())
