@@ -6,14 +6,10 @@ starting_days_until_spawns: list[int] = list(map(int,
     Path('../data/6.txt').read_text().rstrip().split(',')))
 
 @dataclass
-class Fish:
+class FishCycleGroup:
+    'All fish at the same point in the days_until_spawn cycle'
     days_until_spawn: int
     num_members: int
-
-    def __init__(self, days_until_spawn: int, num_members: int):
-        self.days_until_spawn = days_until_spawn
-        assert num_members > 0
-        self.num_members = num_members
 
     def __repr__(self):
         return f'{self.days_until_spawn}×{self.num_members:,}'
@@ -27,35 +23,31 @@ class Fish:
 
 @dataclass
 class FishPopulation:
-    fishes: list[Fish]
+    cycle_groups: list[FishCycleGroup]
     day: int = 0
 
     def __init__(self, starting_days_until_spawns: Iterable[int]):
-        self.fishes = []
+        self.cycle_groups = []
         for days_left in starting_days_until_spawns:
             self.add(days_left, 1)
 
     def add(self, starting_days_until_spawn: int, count: int):
-        matches = [f for f in self.fishes if f.days_until_spawn == starting_days_until_spawn]
-        if matches:
+        if matches := [f for f in self.cycle_groups
+                       if f.days_until_spawn == starting_days_until_spawn]:
             matches[0].num_members += 1
         else:
-            new_fish = Fish(starting_days_until_spawn, count)
-            self.fishes.append(new_fish)
+            self.cycle_groups.append(FishCycleGroup(starting_days_until_spawn, count))
 
     def update(self):
         self.day += 1
-        num_to_spawn = sum(fish.update() for fish in self.fishes)
+        num_to_spawn = sum(fish.update() for fish in self.cycle_groups)
         if num_to_spawn:
             self.add(8, num_to_spawn)
-        print(f'Day {self.day}, spawning {num_to_spawn:,}, count: {sum(f.num_members for f in self.fishes):,}, cycle groups: {len(self.fishes)}')
-        print(self.fishes)
+        print(f'Day {self.day}, spawning {num_to_spawn:,}, count: {sum(f.num_members for f in self.cycle_groups):,}, cycle groups: {len(self.cycle_groups)}')
+        print(self.cycle_groups)
 
 def solve():
-    def print_days(fishes):
-        print(len(fishes), ','.join(str(fish.days_until_spawn) for fish in fishes))
     pop = FishPopulation(starting_days_until_spawns)
-    print_days(pop.fishes)
     for n in range(256):
         pop.update()
     return
