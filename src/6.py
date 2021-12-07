@@ -40,7 +40,7 @@ class FishPopulation:
 
     def update(self):
         self.day += 1
-        num_to_spawn = sum(fish.update() for fish in self.cycle_groups)
+        num_to_spawn = sum(cycle_group.update() for cycle_group in self.cycle_groups)
         if num_to_spawn:
             self.add(8, num_to_spawn)
         print(f'Day {self.day}, spawning {num_to_spawn:,}, count: {sum(f.num_members for f in self.cycle_groups):,}, cycle groups: {len(self.cycle_groups)}')
