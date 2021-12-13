@@ -4,10 +4,13 @@ from typing import Iterator
 import numpy as np
 
 def create_grid(filename):
-    lines: list[str] = Path(filename).read_text().strip().split('\n')
-    grid = np.array([[int(digit_in_string) for digit_in_string in row] for row in lines])
+    grid = np.array([[int(digit_in_string) for digit_in_string in row] for row in lines(filename)])
     print(f'Grid shape: {grid.shape}')
     return grid
+
+def lines(filename):
+    lines: list[str] = Path(filename).read_text().strip().split('\n')
+    return lines
 
 neighbor_offsets_no_diag = np.array([
               [-1, 0],

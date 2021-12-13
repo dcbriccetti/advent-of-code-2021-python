@@ -1,56 +1,68 @@
 from collections import deque
-from pathlib import Path
 from typing import Iterator
+import helpers
 
-opens  = '([{<'
-closes = ')]}>'
-points = [[3, 57, 1197, 25137], [1, 2, 3, 4]]
-lines: list[str] = Path('../data/10.txt').read_text().strip().split('\n')
-stack = deque()
+# Though I normally intend “bracket” to mean “square bracket”, here
+# "bracket" means a parenthesis, square bracket, curly brace, or angle bracket.
+open_brackets  = '([{<'
+close_brackets = ')]}>'
+lines = helpers.lines('../data/10.txt')
 
-def is_pair(delim1: str, delim2: str) -> bool:
-    expected_close = closes[opens.index(delim1)]
-    return delim2 == expected_close
+def first_error_in_line(line: str) -> None | str:
+    'Return the first error in the given line, or None if there are no errors'
 
-def error_in_line(line: str) -> None | str:
-    for ch in line:
-        if ch in closes:
-            if not is_pair(stack.pop(), ch):
-                return ch
+    def is_valid_bracket_pair(open_bracket: str, close_bracket: str) -> bool:
+        open_bracket_index = open_brackets.index(open_bracket)
+        expected_close_bracket = close_brackets[open_bracket_index]
+        return close_bracket == expected_close_bracket
+
+    open_brackets_stack = deque()
+
+    for bracket in line:
+        if bracket in open_brackets:
+            open_brackets_stack.append(bracket)
         else:
-            stack.append(ch)
+            expected_open_bracket = open_brackets_stack.pop()
+            if not is_valid_bracket_pair(expected_open_bracket, bracket):
+                return bracket
     return None
 
-def find_error_points() -> Iterator[int]:
-    for line in lines:
-        stack.clear()
-        if ch := error_in_line(line):
-            yield points[0][closes.index(ch)]
+def part1():
+    illegal_bracket_points = [3, 57, 1197, 25137]
 
-def incompletes() -> list[str]:
-    return list(filter(lambda line: not error_in_line(line), lines))
+    def syntax_error_points() -> Iterator[int]:
+        for line in lines:
+            if bracket := first_error_in_line(line):
+                point_index = close_brackets.index(bracket)
+                yield illegal_bracket_points[point_index]
 
-print(sum(find_error_points()))
+    print('Total syntax error score:', sum(syntax_error_points()))
 
+def part2():
+    points = [1, 2, 3, 4]
 
-def repair_value(incomplete: str) -> int:
-    total = 0
-    stack.clear()
-    for ch in incomplete:
-        if ch in opens:
-            stack.append(ch)
-        else:
-            stack.pop()
-    while stack:
-        ch = stack.pop()
-        i = opens.index(ch)
-        p = points[1][i]
-        total *= 5
-        total += p
-    return total
+    def incompletes() -> Iterator[str]:
+        return filter(lambda line: not first_error_in_line(line), lines)
 
+    def repair_value(incomplete: str) -> int:
+        def open_brackets_needing_closing(incomplete) -> str:
+            open_bracket_stack = deque()
+            for bracket in incomplete:
+                if bracket in open_brackets:
+                    open_bracket_stack.append(bracket)
+                else:
+                    open_bracket_stack.pop()
+            return ''.join(reversed(open_bracket_stack))
 
-in_points = [repair_value(incomplete) for incomplete in incompletes()]
-in_points.sort()
-median = in_points[len(in_points) // 2]
-print(median)
+        total = 0
+        for bracket in open_brackets_needing_closing(incomplete):
+            total = total * 5 + points[open_brackets.index(bracket)]
+        return total
+
+    completion_string_scores = list(map(repair_value, incompletes()))
+    completion_string_scores.sort()
+    median = completion_string_scores[len(completion_string_scores) // 2]
+    print('Middle score:', median)
+
+part1()
+part2()
