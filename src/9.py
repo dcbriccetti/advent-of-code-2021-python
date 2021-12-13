@@ -1,14 +1,14 @@
-from pathlib import Path
 from typing import Iterator
 import numpy as np
 from numpy import ndarray
+from helpers import create_grid, neighbor_offsets_no_diag
 
 Point = ndarray
 
 def is_lowest(row: int, col: int) -> bool:
     'Return whether the value at the given coordinates is the lowest among its neighbors'
     this_val = grid[row, col]
-    for row_off, col_off in neighbor_offsets:
+    for row_off, col_off in neighbor_offsets_no_diag:
         neighbor_col = col + col_off
         neighbor_row = row + row_off
         invalid_offsets = neighbor_col < 0 or neighbor_row < 0 or \
@@ -22,7 +22,7 @@ def is_lowest(row: int, col: int) -> bool:
 def higher_neighbor_points(starting_point: ndarray) -> Iterator[Point]:
     'Provide a sequence of the neighbor points whose values are higher than the value at the starting point'
     starting_value: int = grid[starting_point[0], starting_point[1]]
-    for neighbor_offset in neighbor_offsets:
+    for neighbor_offset in neighbor_offsets_no_diag:
         explore_point: ndarray = starting_point + neighbor_offset
         if tuple(explore_point) not in explored:
             coords_in_range = 0 <= explore_point[0] < grid.shape[0] and \
@@ -45,19 +45,7 @@ def basin_cells(starting_point: Point, depth=0) -> int:
 def grid_value(point: ndarray) -> int:
     return grid[point[0], point[1]]
 
-def create_grid():
-    lines: list[str] = Path('../data/9_test.txt').read_text().strip().split('\n')
-    grid = np.array([[int(digit_in_string) for digit_in_string in row] for row in lines])
-    print(f'Grid shape: {grid.shape}')
-    return grid
-
-grid = create_grid()
-
-neighbor_offsets = np.array([
-              [-1, 0],
-    [0, -1],            [0, 1],
-              [ 1, 0],
-])
+grid = create_grid('../data/9_test.txt')
 
 low_points = np.array([(r, c) for r in range(grid.shape[0]) for c in range(grid.shape[1])
                        if is_lowest(r, c)])
