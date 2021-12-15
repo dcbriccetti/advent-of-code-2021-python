@@ -1,6 +1,5 @@
 from pathlib import Path
-from typing import Iterator
-
+from typing import Iterator, NamedTuple, Sequence
 import numpy as np
 
 def create_grid(filename):
@@ -11,16 +10,19 @@ def create_grid(filename):
 def lines(filename: str, sep='\n') -> list[str]:
     return Path(filename).read_text().strip().split(sep)
 
-def ints_from_line(line: str) -> tuple[int, ...]:
-    return tuple(int(s) for s in line.split(','))
+neighbor_offsets_x_y = np.array([  # x, y
+              [0, -1],
+    [-1, 0],           [1, 0],
+              [0,  1],
+])
 
-neighbor_offsets_no_diag = np.array([
+neighbor_offsets_no_diag = np.array([  # row, column
               [-1, 0],
     [ 0, -1],          [ 0, 1],
               [ 1, 0],
 ])
 
-neighbor_offsets = np.array([
+neighbor_offsets = np.array([  # row, column
     [-1, -1], [-1, 0], [-1, 1],
     [ 0, -1],          [ 0, 1],
     [ 1, -1], [ 1, 0], [ 1, 1]
@@ -32,3 +34,11 @@ def neighbor_coords(shape: tuple[int, int], r: int, c: int, diag=True) -> Iterat
         nc = c + nco
         if 0 <= nr < shape[0] and 0 <= nc < shape[1]:
             yield nr, nc
+
+class Point(NamedTuple):
+    x: int
+    y: int
+
+    @classmethod
+    def new(cls, coords: Sequence):
+        return Point(coords[0], coords[1])
