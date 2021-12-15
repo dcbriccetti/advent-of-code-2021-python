@@ -14,7 +14,7 @@ def num_increases(numbers: Iterator[int]) -> int:
     return sum(increases)
 
 def sums_of_3() -> Iterator[int]:
-    'Return the number of times the sum of three values increases'
+    'Return the sum of each triple of consecutive values'
     numbers = list(get_numbers())
     return (sum(numbers[i-2:i+1]) for i in range(2, len(numbers)))
 
