@@ -12,7 +12,8 @@ def process_polymer(iterations: int) -> int:
     growing_polymer = str(polymer)  # copy from module scope
 
     for i in range(1, iterations + 1):
-        next_polymer = StringIO(growing_polymer[0])
+        next_polymer = StringIO()
+        next_polymer.write(growing_polymer[0])
 
         for left, right in pairwise(growing_polymer):
             if insertion := rules.get(left + right):
