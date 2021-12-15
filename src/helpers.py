@@ -8,9 +8,12 @@ def create_grid(filename):
     print(f'Grid shape: {grid.shape}')
     return grid
 
-def lines(filename):
-    lines: list[str] = Path(filename).read_text().strip().split('\n')
-    return lines
+def lines(filename: str, sep='\n') -> list[str]:
+    return Path(filename).read_text().strip().split(sep)
+
+def ints_from_line(line: str) -> tuple[int, int]:
+    a, b = line.split(',')
+    return int(a), int(b)
 
 neighbor_offsets_no_diag = np.array([
               [-1, 0],
