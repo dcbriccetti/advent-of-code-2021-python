@@ -11,9 +11,8 @@ def create_grid(filename):
 def lines(filename: str, sep='\n') -> list[str]:
     return Path(filename).read_text().strip().split(sep)
 
-def ints_from_line(line: str) -> tuple[int, int]:
-    a, b = line.split(',')
-    return int(a), int(b)
+def ints_from_line(line: str) -> tuple[int, ...]:
+    return tuple(int(s) for s in line.split(','))
 
 neighbor_offsets_no_diag = np.array([
               [-1, 0],
