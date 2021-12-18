@@ -49,12 +49,11 @@ class Decoder:
             while more:
                 more = bool(next_int(1))
                 nibble: int = next_int(4)
-                value = value << 4 + nibble  # Slide over and drop in new bits
+                value = (value << 4) + nibble  # Slide over and drop in new bits
             print(f'{value=}')
             return value
 
         def parse_operator() -> None:
-
             def parse_subpackets_by_length(packets_length):
                 print(f'{packets_length=}')
                 stop_pos = self.bits.pos + packets_length
