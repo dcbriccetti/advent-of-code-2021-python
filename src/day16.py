@@ -38,6 +38,13 @@ class Decoder:
     bits: BitStream
     versions_sum: int
 
+    operators = [
+        sum, prod, min, max, None,
+        lambda vals: int(vals[0] > vals[1]),
+        lambda vals: int(vals[0] < vals[1]),
+        lambda vals: int(vals[0] == vals[1]),
+    ]
+
     def __init__(self, packet_hex):
         self.bits = BitStream(packet_hex)
         print(f'Decoder started for {len(self.bits.bit_str)} bits {packet_hex} {self.bits.bit_str}')
@@ -55,42 +62,23 @@ class Decoder:
             return value
 
         def parse_operator(type: int) -> int:
-            values: list[int] = []
-
-            def parse_subpackets_by_length(packets_length):
+            def parse_subpackets_by_length(packets_length) -> list[int]:
+                values: list[int] = []
                 print(f'{packets_length=}')
                 stop_pos = self.bits.pos + packets_length
                 while self.bits.pos < stop_pos:
                     values.append(self.parse(level + 1))
+                return values
 
-            def parse_subpackets_by_count(packet_count):
+            def parse_subpackets_by_count(packet_count) -> list[int]:
                 print(f'{packet_count=}')
-                for _ in range(packet_count):
-                    values.append(self.parse(level + 1))
+                return [self.parse(level + 1) for _ in range(packet_count)]
 
+            subpacket_parsers = [parse_subpackets_by_length, parse_subpackets_by_count]
             length_type_id = next_int(1)
-            num_bits = 15 if length_type_id == 0 else 11
-            length_or_count = next_int(num_bits)
-            if length_type_id == 0:
-                parse_subpackets_by_length(length_or_count)
-            else:
-                parse_subpackets_by_count(length_or_count)
-
-            match type:
-                case 0:  # sum
-                    return sum(values)
-                case 1:  # product
-                    return prod(values)
-                case 2:  # min
-                    return min(values)
-                case 3:  # max
-                    return max(values)
-                case 5:  # >
-                    return int(values[0] > values[1])
-                case 6:  # <
-                    return int(values[0] < values[1])
-                case 7:  # ==
-                    return int(values[0] == values[1])
+            length_or_count = next_int(15 if length_type_id == 0 else 11)
+            values = subpacket_parsers[length_type_id](length_or_count)
+            return Decoder.operators[type](values)
 
         next_int = self.bits.next_int
         indent = '  ' * level
@@ -98,11 +86,7 @@ class Decoder:
         self.versions_sum += ver
         type = next_int(3)
         print(indent + f'{ver=}, {type=}, ', end='')
-        match type:
-            case 4:
-                return parse_literal()
-            case _:
-                return parse_operator(type)
+        return parse_literal() if type == 4 else parse_operator(type)
 
 if __name__ == '__main__':
     decoder = Decoder(Path('../data/16.txt').read_text().strip())
