@@ -1,3 +1,4 @@
+from math import prod
 from pathlib import Path
 
 class BitStream:
@@ -42,7 +43,7 @@ class Decoder:
         print(f'Decoder started for {len(self.bits.bit_str)} bits {packet_hex} {self.bits.bit_str}')
         self.versions_sum = 0
 
-    def parse(self, level) -> None:
+    def parse(self, level=0) -> int:
         def parse_literal() -> int:
             value = 0
             more: bool = True
@@ -53,17 +54,19 @@ class Decoder:
             print(f'{value=}')
             return value
 
-        def parse_operator() -> None:
+        def parse_operator(type: int) -> int:
+            values: list[int] = []
+
             def parse_subpackets_by_length(packets_length):
                 print(f'{packets_length=}')
                 stop_pos = self.bits.pos + packets_length
                 while self.bits.pos < stop_pos:
-                    self.parse(level + 1)
+                    values.append(self.parse(level + 1))
 
             def parse_subpackets_by_count(packet_count):
                 print(f'{packet_count=}')
                 for _ in range(packet_count):
-                    self.parse(level + 1)
+                    values.append(self.parse(level + 1))
 
             length_type_id = next_int(1)
             num_bits = 15 if length_type_id == 0 else 11
@@ -73,6 +76,22 @@ class Decoder:
             else:
                 parse_subpackets_by_count(length_or_count)
 
+            match type:
+                case 0:  # sum
+                    return sum(values)
+                case 1:  # product
+                    return prod(values)
+                case 2:  # min
+                    return min(values)
+                case 3:  # max
+                    return max(values)
+                case 5:  # >
+                    return int(values[0] > values[1])
+                case 6:  # <
+                    return int(values[0] < values[1])
+                case 7:  # ==
+                    return int(values[0] == values[1])
+
         next_int = self.bits.next_int
         indent = '  ' * level
         ver = next_int(3)
@@ -81,11 +100,10 @@ class Decoder:
         print(indent + f'{ver=}, {type=}, ', end='')
         match type:
             case 4:
-                parse_literal()
+                return parse_literal()
             case _:
-                parse_operator()
+                return parse_operator(type)
 
 if __name__ == '__main__':
     decoder = Decoder(Path('../data/16.txt').read_text().strip())
-    decoder.parse(0)
-    print(decoder.versions_sum)
+    print(f'Result: {decoder.parse()}, versions sum: {decoder.versions_sum}')

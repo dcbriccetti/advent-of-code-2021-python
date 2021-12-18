@@ -10,7 +10,7 @@ class TestBitStream(TestCase):
             self.assertEqual(expected_value, bits.next_int(4))
 
 class TestDecoder(TestCase):
-    def test_samples_are_processed_correctly(self):
+    def test_version_numbers_sum_correctly(self):
         test_data_pairs = [
             ('D2FE28', 6),
             ('38006F45291200', 9),
@@ -27,3 +27,19 @@ class TestDecoder(TestCase):
             versions_sum = decoder.versions_sum
             print(f'{versions_sum=}')
             self.assertEqual(test_data_pair[1], versions_sum)
+
+    def test_operations(self):
+        test_data_pairs = [
+            ('C200B40A82', 3),
+            ('04005AC33890', 54),
+            ('880086C3E88112', 7),
+            ('CE00C43D881120', 9),
+            ('D8005AC2A8F0', 1),
+            ('F600BC2D8F', 0),
+            ('9C005AC2F8F0', 0),
+            ('9C0141080250320F1802104A08', 1),
+        ]
+        for test_data_pair in test_data_pairs:
+            hex_str = test_data_pair[0]
+            decoder = Decoder(hex_str)
+            self.assertEqual(test_data_pair[1], decoder.parse())
