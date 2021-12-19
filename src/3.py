@@ -1,8 +1,9 @@
 from pathlib import Path
 from typing import Sequence
 
-def more_ones_than_zeroes(nums: Sequence[str], pos: int) -> bool:
-    num_one_bits = sum(int(num[pos]) for num in nums)
+def more_ones_than_zeroes(nums: Sequence[str], bit_index: int) -> bool:
+    "nums example: ['00100', '11110', '10110', ..., '01010']"
+    num_one_bits = sum(int(num[bit_index]) for num in nums)
     num_zero_bits = len(nums) - num_one_bits
     return num_one_bits >= num_zero_bits
 
@@ -12,11 +13,12 @@ def b01(value: bool | int | str, reverse=False) -> str:
     maybe_reversed_value = not bool_value if reverse else bool_value
     return str(int(maybe_reversed_value))
 
-nums: list[str] = Path('data/3_test.txt').read_text().rstrip().split('\n')
+nums: list[str] = Path('../data/3_test.txt').read_text().rstrip().split('\n')
 num_cols = len(nums[0])
 
 def part1():
     def most_common_digits(binary_strings: list[str]) -> str:
+        "binary_strings example: ['00100', '11110', '10110', ..., '01010']"
         digits = (b01(more_ones_than_zeroes(binary_strings, bit_index))
                   for bit_index in range(num_cols))
         return ''.join(digits)
