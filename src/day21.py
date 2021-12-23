@@ -15,9 +15,9 @@ class DeterministicDie:
 
 class Player:
     next_player_number = 0
-    die: DeterministicDie
     player_number: int
     pos: int
+    die: DeterministicDie
     score: int
 
     def __init__(self, starting_pos: int, die: DeterministicDie):
