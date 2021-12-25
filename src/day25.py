@@ -1,15 +1,17 @@
 from colorama import Fore
 from numpy import ndarray, array
-from helpers import create_grid, lines, Point2D, print_grid, Grid
+from helpers import create_grid, lines, Point2D, print_grid, Grid, plural
 
 Highlights = list[Point2D]
 
-def step(current_gen_grid: ndarray) -> tuple[Grid, Highlights]:
-    highlights: Highlights = []
-    for symbol, direction in symbols_and_directions:
+def step(step_number: int, current_gen_grid: ndarray) -> tuple[Grid, int]:
+    num_moves = 0
+    for i, (symbol, direction) in enumerate(symbols_and_directions):
+        num_moves_in_phase = 0
+        highlights: Highlights = []
         next_gen_grid: Grid = current_gen_grid.copy()
 
-        def move_if_able(ri: int, ci: int):
+        def move_if_able(ri: int, ci: int) -> bool:
             here = array([ri, ci])
             new_pos_before_wrap = here + direction
             new_pos_wrapped = new_pos_before_wrap % current_gen_grid.shape
@@ -19,17 +21,27 @@ def step(current_gen_grid: ndarray) -> tuple[Grid, Highlights]:
                 next_gen_grid[target_coords] = symbol
                 highlights.append((ri, ci))
                 highlights.append(target_coords)
+                return True
+            return False
 
-        def move_movable_symbols() -> None:
+        def move_movable_symbols() -> int:
+            num_moved = 0
             shape = current_gen_grid.shape
             for ri in range(shape[0]):
                 for ci in range(shape[1]):
                     if current_gen_grid[ri, ci] == symbol:
-                        move_if_able(ri, ci)
+                        if move_if_able(ri, ci):
+                            num_moved += 1
+            return num_moved
 
-        move_movable_symbols()
+        num_moves_in_phase += move_movable_symbols()
+        print(Fore.GREEN +
+              f'After step {step_number}-{i + 1}, {num_moves_in_phase} move{plural(num_moves_in_phase)}' +
+              Fore.WHITE)
+        print_grid(next_gen_grid, highlights, [Fore.LIGHTYELLOW_EX, Fore.LIGHTBLUE_EX][i])
         current_gen_grid = next_gen_grid
-    return current_gen_grid, highlights
+        num_moves += num_moves_in_phase
+    return current_gen_grid, num_moves
 
 grid = create_grid(lines('../data/25_test.txt'), mapper=str)
 symbols_and_directions = [
@@ -39,10 +51,7 @@ symbols_and_directions = [
 
 print(Fore.GREEN + f'Starting contents' + Fore.WHITE)
 print_grid(grid, [])
-highlights: Highlights = []
 for step_number in range(1, 1_001):
-    grid, highlights = step(grid)
-    print(Fore.GREEN + f'After {step_number} steps' + Fore.WHITE)
-    print_grid(grid, highlights)
-    if step_number > 0 and not highlights:
+    grid, num_changes = step(step_number, grid)
+    if step_number > 0 and num_changes == 0:
         break  # Stop after no movement
