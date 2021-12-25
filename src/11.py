@@ -1,7 +1,7 @@
-from helpers import create_grid, neighbor_coords
+from helpers import lines, create_grid, neighbor_coords
 
 Flashes = set[tuple[int, int]]
-levels = create_grid('../data/11.txt')
+levels = create_grid(lines('../data/11.txt'))
 nr, nc = levels.shape
 num_octopuses = nr * nc
 

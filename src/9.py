@@ -1,7 +1,7 @@
 from typing import Iterator
 import numpy as np
 from numpy import ndarray
-from helpers import create_grid, neighbor_offsets_no_diag
+from helpers import create_grid, neighbor_offsets_no_diag, lines
 
 Point = ndarray
 
@@ -45,7 +45,7 @@ def basin_cells(starting_point: Point, depth=0) -> int:
 def grid_value(point: ndarray) -> int:
     return grid[point[0], point[1]]
 
-grid = create_grid('../data/9_test.txt')
+grid = create_grid(lines('../data/9_test.txt'))
 
 low_points = np.array([(r, c) for r in range(grid.shape[0]) for c in range(grid.shape[1])
                        if is_lowest(r, c)])
